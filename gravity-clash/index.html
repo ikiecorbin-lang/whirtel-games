@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gravity Clash — No-Touch (2–4 Players)</title>
+
+<style>
+:root{
+  --panel:#1e253d; --panelBorder:#3b466f; --text:#f8fafc;
+  --muted:#94a3b8; --accent:#38bdf8; --boardCol:#2a335a; --boardBorder:#4b558b;
+
+  --red:#ef4444; --yellow:#facc15; --green:#22c55e; --blue:#3b82f6;
+  --warn:#fb7185; --warnGlow: rgba(251,113,133,.35);
+
+  /* ✅ RESPONSIVE SIZES (single source of truth) */
+  --cell: 66px;     /* slot + disc size */
+  --gap: 12px;      /* column gap */
+  --slotGap: 10px;  /* vertical slot gap inside column */
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  background:radial-gradient(circle at 20% 20%,#1e253d 0%,#0f172a 60%);
+  color:var(--text);
+}
+
+.app{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+  display:grid;
+  gap:16px;
+  grid-template-columns:320px 1fr;
+}
+
+header{
+  grid-column:1/-1;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.title{font-weight:900;font-size:24px}
+.tagline{color:var(--muted);font-size:13px}
+
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{
+  border:0;border-radius:10px;padding:8px 12px;
+  background:var(--accent);color:#0f172a;
+  font-weight:1000;cursor:pointer;
+  box-shadow:0 8px 20px rgba(56,189,248,.4);
+}
+button.secondary{
+  background:rgba(15,23,42,.9);
+  border:1px solid rgba(148,163,184,.55);
+  color:var(--text);
+  box-shadow:none;
+}
+select{
+  background:#0b1120;color:var(--text);
+  border:1px solid rgba(148,163,184,.55);
+  border-radius:10px;
+  padding:8px 10px;
+  font-weight:1000;
+}
+
+/* ✅ Home button (link styled like a button) */
+a.btnLink{
+  border:0;border-radius:10px;padding:8px 12px;
+  background:var(--accent);color:#0f172a;
+  font-weight:1000;cursor:pointer;
+  box-shadow:0 8px 20px rgba(56,189,248,.4);
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+}
+a.btnLink.secondary{
+  background:rgba(15,23,42,.9);
+  border:1px solid rgba(148,163,184,.55);
+  color:var(--text);
+  box-shadow:none;
+}
+
+/* Sidebar */
+.sidebar{
+  background:var(--panel);
+  border:1px solid var(--panelBorder);
+  border-radius:16px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.blockLabel{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  color:var(--muted);
+  font-weight:1000;
+}
+
+.turnChip{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px;border-radius:14px;
+  background:rgba(2,6,23,.55);
+  border:1px solid rgba(148,163,184,.25);
+}
+.turnLeft{display:flex;align-items:center;gap:10px}
+.dot{
+  width:18px;height:18px;border-radius:999px;
+  border:2px solid rgba(0,0,0,.55);
+  box-shadow:0 0 10px rgba(255,255,255,.18);
+}
+.turnText{display:flex;flex-direction:column;gap:2px}
+.turnName{font-weight:1000}
+.turnSub{font-size:12px;color:var(--muted);font-weight:900}
+
+.jokerBtn{
+  background:linear-gradient(135deg,#fff,#fde68a 40%,#fb7185);
+  color:#0b1120;
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 10px 22px rgba(0,0,0,.25);
+}
+.jokerBtn:disabled{
+  opacity:.45; cursor:not-allowed; filter:grayscale(1);
+}
+
+.players{display:grid;gap:10px}
+.player{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px;
+  border-radius:14px;
+  background:rgba(2,6,23,.45);
+  border:1px solid rgba(148,163,184,.22);
+}
+.player.active{
+  border-color:rgba(56,189,248,.75);
+  box-shadow:0 0 0 1px rgba(56,189,248,.25);
+}
+.player.out{opacity:.45;filter:grayscale(.25)}
+.playerLeft{display:flex;align-items:center;gap:10px}
+.pname{font-weight:1000}
+.pmeta{font-size:12px;color:var(--muted);font-weight:900}
+.pRight{display:flex;align-items:flex-end;gap:8px}
+
+.scorePill{
+  font-variant-numeric:tabular-nums;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(148,163,184,.35);
+  background:rgba(2,6,23,.55);
+  font-weight:1000;
+  min-width:46px;
+  text-align:center;
+}
+.jokerPill{
+  font-size:10px;
+  font-weight:1000;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  padding:6px 8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.25);
+  background:rgba(2,6,23,.45);
+  color:var(--muted);
+}
+.jokerPill.ready{
+  color:#0b1120;
+  background:linear-gradient(135deg,#fff,#fde68a 40%,#fb7185);
+}
+.elimPill{
+  display:none;
+  font-size:10px;
+  font-weight:1000;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  background:linear-gradient(135deg,#fb7185,#f59e0b);
+  color:#0b1120;
+  padding:4px 8px;
+  border-radius:999px;
+  margin-left:8px;
+}
+.player.out .elimPill{display:inline-flex}
+
+/* Board */
+.boardWrap{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--panelBorder);
+  border-radius:18px;
+  padding:18px;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.cols{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:var(--gap);
+  min-width: calc(7 * (var(--cell) + 20px));
+}
+
+.col{
+  position:relative;
+  background:var(--boardCol);
+  border-radius:18px;
+  padding:48px 10px 14px;
+  border:1px solid var(--boardBorder);
+  display:grid;
+  align-content:end;
+  gap:var(--slotGap);
+  min-height:540px;
+  box-shadow:inset 0 30px 60px rgba(0,0,0,.35);
+}
+
+.dropBtn{
+  position:absolute;top:4px;left:50%;
+  transform:translateX(-50%);
+  width:44px;height:44px;
+  border-radius:999px;
+  border:2px dashed rgba(148,163,184,.6);
+  background:#0f172a;color:#e2e8f0;
+  font-weight:1000;cursor:pointer;
+  box-shadow:0 12px 28px rgba(0,0,0,.45);
+}
+
+.slot{
+  width:var(--cell);
+  height:var(--cell);
+  border-radius:999px;
+  background:#1e253d;
+  border:2px solid rgba(148,163,184,.12);
+  box-shadow:inset 0 10px 18px rgba(0,0,0,.35);
+}
+
+/* Chips */
+.disc{
+  position:absolute;
+  width:var(--cell);
+  height:var(--cell);
+  border-radius:999px;
+  transform:translateY(-110px);
+  transition:transform .26s cubic-bezier(.2,.9,.2,1);
+  overflow:hidden;
+  box-shadow:
+    0 18px 38px rgba(0,0,0,.58),
+    inset 0 10px 16px rgba(255,255,255,.16),
+    inset 0 -10px 18px rgba(0,0,0,.35);
+}
+
+.disc::after{
+  content:"";
+  position:absolute; inset:-14%;
+  border-radius:inherit;
+  background:
+    radial-gradient(circle at 26% 20%, rgba(255,255,255,.92), transparent 52%),
+    radial-gradient(circle at 70% 80%, rgba(0,0,0,.30), transparent 55%);
+  mix-blend-mode:screen;
+}
+.disc::before{
+  content:"";
+  position:absolute; inset:2px;
+  border-radius:inherit;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.18);
+  pointer-events:none;
+}
+
+.disc.red{background:radial-gradient(circle at 28% 22%,#ffd1d1,var(--red) 54%,#7f1d1d)}
+.disc.yellow{background:radial-gradient(circle at 28% 22%,#fff7bf,var(--yellow) 54%,#854d0e)}
+.disc.green{background:radial-gradient(circle at 28% 22%,#c9fbdc,var(--green) 54%,#14532d)}
+.disc.blue{background:radial-gradient(circle at 28% 22%,#cfe3ff,var(--blue) 54%,#1e3a8a)}
+
+/* PLAYER JOKER */
+.disc.joker{
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,.95), transparent 52%),
+    radial-gradient(circle at 50% 55%, #0b1120 0 44%, #e5e7eb 45% 52%, #0b1120 53% 100%),
+    repeating-conic-gradient(from 0deg, #111827 0 14deg, #e5e7eb 14deg 28deg);
+  border:1px solid rgba(226,232,240,.7);
+}
+.jokerMark{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-weight:1000;
+  font-size:22px;
+  letter-spacing:.06em;
+  color:#0b1120;
+  text-shadow:0 2px 0 rgba(255,255,255,.55);
+  mix-blend-mode:screen;
+  pointer-events:none;
+}
+
+/* BOULDER */
+.disc.boulder{
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255,255,255,.10), transparent 55%),
+    radial-gradient(circle at 60% 75%, rgba(0,0,0,.55), transparent 60%),
+    radial-gradient(circle at 50% 55%, #0b0f16 0 45%, #000 46% 100%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 6px, rgba(0,0,0,.10) 6px 12px);
+  border:2px solid rgba(0,0,0,.75);
+  box-shadow:
+    0 22px 44px rgba(0,0,0,.72),
+    inset 0 10px 18px rgba(255,255,255,.06),
+    inset 0 -14px 20px rgba(0,0,0,.65);
+}
+.disc.boulder::after{ opacity:.25; }
+.disc.boulder::before{ box-shadow: inset 0 0 0 2px rgba(255,255,255,.08); }
+
+/* Loss clarity */
+.failHold{
+  outline:4px solid var(--warn);
+  box-shadow:0 0 24px var(--warnGlow);
+  z-index:6;
+}
+.boardWrap.dimBoard .disc{opacity:.35;filter:saturate(.82)}
+.boardWrap.dimBoard .disc.failHold{opacity:1;filter:none}
+
+/* POW effect */
+.pow{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.2) rotate(-10deg);
+  font-weight:1000;
+  font-size:28px;
+  letter-spacing:.06em;
+  color:#0b1120;
+  background:linear-gradient(135deg,#fff,#fde68a 40%,#fb7185);
+  padding:6px 12px;
+  border-radius:14px;
+  border:2px solid rgba(0,0,0,.55);
+  box-shadow:0 14px 30px rgba(0,0,0,.45);
+  pointer-events:none;
+  opacity:0;
+}
+@keyframes powPop{
+  0%   {opacity:0; transform:translate(-50%,-50%) scale(.2) rotate(-10deg)}
+  40%  {opacity:1; transform:translate(-50%,-50%) scale(1.15) rotate(6deg)}
+  70%  {opacity:1; transform:translate(-50%,-50%) scale(1.0) rotate(-2deg)}
+  100% {opacity:0; transform:translate(-50%,-85%) scale(.85) rotate(0deg)}
+}
+.pow.show{ animation: powPop .55s ease-out forwards; }
+
+/* Explosion */
+@keyframes boom{
+  0%{transform:scale(1);opacity:1}
+  55%{transform:scale(1.35);opacity:1}
+  100%{transform:scale(.7);opacity:0}
+}
+.boomOut{animation:boom .34s ease-out forwards}
+
+/* Banner */
+.banner{
+  position:absolute;inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.6);
+}
+.banner.show{display:flex}
+.bannerCard{
+  background:#0f172a;
+  border:1px solid rgba(148,163,184,.35);
+  border-radius:16px;
+  padding:20px 24px;
+  text-align:center;
+}
+
+/* ✅ MOBILE: stack layout and shrink sizes safely */
+@media (max-width: 960px){
+  .app{ grid-template-columns:1fr; padding:14px; }
+  header{ gap:10px; }
+  .title{ font-size:22px; }
+}
+
+/* ✅ PHONE: reduce chip size + column spacing */
+@media (max-width: 520px){
+  :root{
+    --cell: 44px;
+    --gap: 8px;
+    --slotGap: 8px;
+  }
+  .col{ min-height: 380px; padding:40px 8px 12px; }
+  .dropBtn{ width:36px; height:36px; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="title">Gravity Clash</div>
+    <div class="tagline" id="modeLine">+1 per safe chip. Modes: 4P clean · 3P personal joker · 2P boulders + personal joker.</div>
+  </div>
+
+  <div class="controls">
+    <label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:1000">
+      Players
+      <select id="playerCount">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4" selected>4</option>
+      </select>
+    </label>
+
+    <!-- ✅ Home button (change index.html if your home file has a different name) -->
+    <a class="btnLink secondary" href="index.html" title="Back to Home">← Home</a>
+
+    <button id="newGame" title="Restart with current player count">New Game</button>
+    <button id="reset" class="secondary" title="Same as New Game">Reset</button>
+  </div>
+</header>
+
+<aside class="sidebar">
+  <div class="blockLabel">Current Turn</div>
+  <div class="turnChip">
+    <div class="turnLeft">
+      <span class="dot" id="turnDot"></span>
+      <div class="turnText">
+        <div class="turnName" id="turnName">—</div>
+        <div class="turnSub" id="turnSub">Drop a chip</div>
+      </div>
+    </div>
+    <button id="useJokerBtn" class="jokerBtn" title="Use your one-time Joker (+5)">JOKER +5</button>
+  </div>
+
+  <div class="blockLabel">Players</div>
+  <div class="players" id="players"></div>
+</aside>
+
+<main class="boardWrap" id="boardWrap">
+  <div class="cols" id="cols"></div>
+
+  <div class="banner" id="banner">
+    <div class="bannerCard">
+      <h2 id="bannerTitle">—</h2>
+      <button id="playAgain">Play Again</button>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+(() => {
+  const ROWS=7, COLS=7;
+
+  const SCORE_PER_SAFE = 1;
+  const JOKER_BONUS = 5;
+
+  const COLORS=[
+    {n:"Red",c:"red",v:"var(--red)"},
+    {n:"Yellow",c:"yellow",v:"var(--yellow)"},
+    {n:"Green",c:"green",v:"var(--green)"},
+    {n:"Blue",c:"blue",v:"var(--blue)"}
+  ];
+
+  // board cell: { pid, discEl, type:'normal'|'joker'|'boulder', static?:true }
+  let players=[], board, current=0, accepting=true;
+  let jokerArmed=false;
+  let jokersEnabled=false;
+  let bouldersEnabled=false;
+
+  const colsEl=document.getElementById("cols");
+  const playersEl=document.getElementById("players");
+  const turnDot=document.getElementById("turnDot");
+  const turnName=document.getElementById("turnName");
+  const turnSub=document.getElementById("turnSub");
+  const boardWrap=document.getElementById("boardWrap");
+
+  const banner=document.getElementById("banner");
+  const bannerTitle=document.getElementById("bannerTitle");
+
+  const playerCountSel=document.getElementById("playerCount");
+  const newGameBtn=document.getElementById("newGame");
+  const resetBtn=document.getElementById("reset");
+  const playAgainBtn=document.getElementById("playAgain");
+  const useJokerBtn=document.getElementById("useJokerBtn");
+  const modeLine=document.getElementById("modeLine");
+
+  function clearDim(){
+    boardWrap.classList.remove("dimBoard");
+    colsEl.querySelectorAll(".failHold").forEach(el=>el.classList.remove("failHold"));
+    colsEl.querySelectorAll(".pow").forEach(el=>el.remove());
+  }
+
+  function buildBoard(){
+    colsEl.innerHTML="";
+    for(let c=0;c<COLS;c++){
+      const col=document.createElement("div");
+      col.className="col";
+
+      const btn=document.createElement("button");
+      btn.className="dropBtn";
+      btn.textContent="⬇";
+      btn.title=`Drop in column ${c+1}`;
+      btn.onclick=()=>drop(c);
+      col.appendChild(btn);
+
+      for(let r=0;r<ROWS;r++){
+        const s=document.createElement("div");
+        s.className="slot";
+        col.appendChild(s);
+      }
+      colsEl.appendChild(col);
+    }
+  }
+
+  function renderPlayers(){
+    playersEl.innerHTML="";
+    players.forEach(p=>{
+      const d=document.createElement("div");
+      d.className="player"+(p.alive?"":" out")+(p.id===current && p.alive ? " active":"");
+      d.innerHTML=`
+        <div class="playerLeft">
+          <span class="dot" style="background:${p.v}"></span>
+          <div>
+            <div class="pname">${p.n}</div>
+            <div class="pmeta">${p.alive?"IN":"OUT"} <span class="elimPill">ELIMINATED</span></div>
+          </div>
+        </div>
+        <div class="pRight">
+          <span class="jokerPill ${(jokersEnabled && p.jokerLeft && p.alive) ? 'ready':''}">
+            ${jokersEnabled ? (p.jokerLeft ? 'JOKER' : 'NO JOKER') : '—'}
+          </span>
+          <span class="scorePill" id="score-${p.id}">${p.score}</span>
+        </div>`;
+      playersEl.appendChild(d);
+    });
+  }
+
+  function updateTurn(){
+    jokerArmed=false;
+
+    let guard=0;
+    while(players.length && !players[current].alive){
+      current=(current+1)%players.length;
+      if(++guard>10) break;
+    }
+    const p=players[current];
+    turnDot.style.background=p?.v || "#475569";
+    turnName.textContent=p ? `${p.n}'s turn` : "—";
+    turnSub.textContent="Drop a chip";
+
+    if(!jokersEnabled || !p || !p.alive || !p.jokerLeft){
+      useJokerBtn.disabled=true;
+      useJokerBtn.textContent = jokersEnabled ? "JOKER USED" : "NO JOKERS";
+    }else{
+      useJokerBtn.disabled=false;
+      useJokerBtn.textContent="JOKER +5";
+    }
+
+    renderPlayers();
+  }
+
+  function nextRow(c){
+    for(let r=ROWS-1;r>=0;r--){
+      if(board[r][c]) continue;
+      if(r===ROWS-1) return r;
+      if(board[r+1][c]) return r;
+    }
+    return -1;
+  }
+
+  // only NORMAL chips trigger elimination
+  function adjSameCells(r,c,pid){
+    const hits=[];
+    for(let dr=-1;dr<=1;dr++){
+      for(let dc=-1;dc<=1;dc++){
+        if(!dr && !dc) continue;
+        const rr=r+dr, cc=c+dc;
+        if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS){
+          const cell = board[rr][cc];
+          if(cell && cell.pid===pid && cell.type==='normal') hits.push([rr,cc]);
+        }
+      }
+    }
+    return hits;
+  }
+
+  function endIfLastAlive(){
+    const alive = players.filter(x=>x.alive);
+    if(alive.length===1){
+      bannerTitle.textContent = `${alive[0].n} WINS!  (Score: ${alive[0].score})`;
+      banner.classList.add("show");
+      accepting=false;
+      return true;
+    }
+    return false;
+  }
+
+  function showPow(discEl){
+    const pow=document.createElement("div");
+    pow.className="pow";
+    pow.textContent="POW!";
+    discEl.appendChild(pow);
+    pow.getBoundingClientRect();
+    pow.classList.add("show");
+    setTimeout(()=>pow.remove(), 650);
+  }
+
+  function setScore(pid){
+    const p=players.find(x=>x.id===pid);
+    const el=document.getElementById(`score-${pid}`);
+    if(p && el) el.textContent = p.score;
+  }
+
+  function placeStaticBoulderAt(r,c){
+    const colEl = colsEl.children[c];
+    if(!colEl) return;
+
+    const disc=document.createElement("div");
+    disc.className="disc boulder";
+    colEl.appendChild(disc);
+
+    const slot=colEl.querySelectorAll(".slot")[r];
+    const slotRect=slot.getBoundingClientRect();
+    const colRect=colEl.getBoundingClientRect();
+    const y=slotRect.top - colRect.top;
+
+    const x = (slotRect.left - colRect.left) + (slotRect.width/2) - (disc.offsetWidth/2);
+
+    disc.style.left = x + "px";
+    disc.style.transform = "none";
+    disc.style.top = y + "px";
+
+    board[r][c] = { pid:-999, discEl:disc, type:'boulder', static:true };
+  }
+
+  function dropStaticBoulder(col){
+    const r = nextRow(col);
+    if(r < 0) return;
+    placeStaticBoulderAt(r, col);
+  }
+
+  function start(){
+    clearDim();
+    banner.classList.remove("show");
+    accepting=true;
+    jokerArmed=false;
+
+    const n=parseInt(playerCountSel.value,10) || 4;
+
+    jokersEnabled = (n === 2 || n === 3);
+    bouldersEnabled = (n === 2);
+
+    modeLine.textContent =
+      n===4 ? "+1 per safe chip. 4P mode: NO jokers (plays clean)."
+      : n===3 ? "+1 per safe chip. 3P mode: each player gets 1 Joker (+5)."
+      : "+1 per safe chip. 2P mode: 4 BOULDERS + each player gets 1 Joker (+5).";
+
+    players=COLORS.slice(0,n).map((c,i)=>({
+      id:i, ...c,
+      alive:true,
+      score:0,
+      jokerLeft: jokersEnabled ? true : false
+    }));
+
+    board=Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    current=0;
+
+    buildBoard();
+    updateTurn();
+
+    if(bouldersEnabled){
+      requestAnimationFrame(()=>{
+        const mid = Math.floor(COLS/2);
+        dropStaticBoulder(mid-1);
+        dropStaticBoulder(mid);
+        dropStaticBoulder(mid+1);
+        dropStaticBoulder(mid);
+      });
+    }
+  }
+
+  useJokerBtn.onclick = () => {
+    if(!jokersEnabled) return;
+    const p=players[current];
+    if(!p || !p.alive || !p.jokerLeft) return;
+    jokerArmed = !jokerArmed;
+    turnSub.textContent = jokerArmed ? "Joker armed — next drop is neutral (+5)" : "Drop a chip";
+    useJokerBtn.textContent = jokerArmed ? "JOKER ARMED" : "JOKER +5";
+  };
+
+  function drop(c){
+    if(!accepting) return;
+    const p=players[current];
+    if(!p?.alive) { updateTurn(); return; }
+
+    const r=nextRow(c);
+    if(r<0) return;
+
+    accepting=false;
+    clearDim();
+
+    const colEl=colsEl.children[c];
+    const isJoker = jokersEnabled && jokerArmed && p.jokerLeft;
+
+    const disc=document.createElement("div");
+    disc.className = isJoker ? "disc joker" : ("disc "+p.c);
+    if(isJoker){
+      const m=document.createElement("div");
+      m.className="jokerMark";
+      m.textContent="J";
+      disc.appendChild(m);
+    }
+    colEl.appendChild(disc);
+
+    const slot=colEl.querySelectorAll(".slot")[r];
+    const slotRect=slot.getBoundingClientRect();
+    const colRect=colEl.getBoundingClientRect();
+    const y=slotRect.top - colRect.top;
+
+    const x = (slotRect.left - colRect.left) + (slotRect.width/2) - (disc.offsetWidth/2);
+    disc.style.left = x + "px";
+
+    requestAnimationFrame(()=> disc.style.transform=`translateY(${y}px)`);
+
+    disc.addEventListener("transitionend", ()=>{
+      disc.style.transform="none";
+      disc.style.top = y+"px";
+
+      board[r][c] = { pid:p.id, discEl:disc, type: isJoker ? 'joker' : 'normal' };
+
+      p.score += SCORE_PER_SAFE + (isJoker ? JOKER_BONUS : 0);
+      setScore(p.id);
+
+      if(isJoker){
+        p.jokerLeft = false;
+        jokerArmed = false;
+      }
+
+      if(!isJoker){
+        const hits = adjSameCells(r,c,p.id);
+        if(hits.length){
+          boardWrap.classList.add("dimBoard");
+          disc.classList.add("failHold");
+          hits.forEach(([rr,cc])=> board[rr][cc]?.discEl?.classList.add("failHold"));
+          turnSub.textContent = `${p.n} touched their color — ELIMINATED`;
+          renderPlayers();
+
+          setTimeout(()=>{
+            showPow(disc);
+            setTimeout(()=>{
+              disc.classList.add("boomOut");
+              disc.addEventListener("animationend", ()=>{
+                disc.remove();
+                board[r][c] = null;
+
+                clearDim();
+
+                p.alive=false;
+                if(endIfLastAlive()) return;
+
+                current = (current+1) % players.length;
+                accepting=true;
+                updateTurn();
+              }, {once:true});
+            }, 260);
+          }, 900);
+
+          return;
+        }
+      }
+
+      current = (current+1) % players.length;
+      accepting=true;
+      updateTurn();
+    }, {once:true});
+  }
+
+  newGameBtn.onclick=start;
+  resetBtn.onclick=start;
+  playAgainBtn.onclick=start;
+  playerCountSel.addEventListener("change", start);
+
+  /* ✅ Keyboard shortcut: press H to go Home */
+  window.addEventListener("keydown", (e) => {
+    if (e.key && e.key.toLowerCase() === "h") {
+      window.location.href = "index.html";
+    }
+  });
+
+  start();
+})();
+</script>
+</body>
+</html>
