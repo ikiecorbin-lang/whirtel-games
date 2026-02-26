@@ -104,7 +104,42 @@
     </div>
   </header>
 
-  <aside class="sidebar">
+   <aside class="sidebar">
+  <details class="infoPanel">
+    <summary>Info (Status / Next Ball / How it Works)</summary>
+
+    <div>
+      <div class="blockLabel">Status</div>
+      <div class="box">
+        <div class="row"><span>Score</span><span class="scoreVal" id="scoreVal">0</span></div>
+        <div class="row"><span>Best</span><span class="scoreVal" id="bestVal">0</span></div>
+        <div class="row"><span>Empty Cells</span><span class="scoreVal" id="emptyVal">49</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="blockLabel">Next Ball</div>
+      <div class="box">
+        <div class="ballPreview">
+          <div id="nextBallDot" class="ball"></div>
+          <div class="ballLabel" id="nextBallLabel">Not drawn</div>
+        </div>
+        <div class="hint">Avoid touching the same color in any of 8 directions.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="blockLabel">How it works</div>
+      <div class="box hint">
+        • Drop a ball into any column.<br/>
+        • If it touches the same color (8 directions), the run ends.<br/>
+        • Score +1 per safe drop.<br/>
+        • Balanced shuffle bag (4× each color) prevents long streaks.
+      </div>
+    </div>
+
+  </details>
+</aside>
     <div>
       <div class="blockLabel">Status</div>
       <div class="box">
