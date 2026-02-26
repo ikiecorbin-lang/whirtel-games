@@ -316,7 +316,10 @@
     const slots = colEl.querySelectorAll(".slot");
     const slotRect = slots[r].getBoundingClientRect();
     const colRect = colEl.getBoundingClientRect();
-    const x = slotRect.left - colRect.left + (slotRect.width/2) - 33;
+   const x =
+  (slotRect.left - colRect.left) +
+  (slotRect.width / 2) -
+  (disc.offsetWidth / 2);
     disc.style.left = x+"px";
     disc.style.top = "-100px";
 
@@ -393,3 +396,4 @@
 </script>
 </body>
 </html>
+
