@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GRAVITY — Solo · Chill | Whirtel</title>
+
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e253d; --panelBorder:#3b466f; --text:#f8fafc;
+    --muted:#94a3b8; --accent:#38bdf8; --boardCol:#2a335a; --boardBorder:#4b558b;
+    --red:#ef4444; --yellow:#eab308; --green:#10b981; --blue:#3b82f6;
+    --warn:#fb7185; --warnGlow: rgba(251,113,133,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+       background:radial-gradient(circle at 20% 20%,#1e253d 0%,#0f172a 60%);color:var(--text)}
+  .app{max-width:1100px;margin:auto;padding:20px;display:grid;gap:16px;grid-template-columns:300px 1fr}
+  header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .title{font-weight:800;font-size:24px}
+  .tagline{color:var(--muted);font-size:13px}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  button, .linkBtn{
+    border:0;border-radius:10px;padding:8px 12px;background:var(--accent);color:#0f172a;
+    font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(56,189,248,.4);
+    text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
+  }
+  button:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(1)}
+  .linkBtn.secondary{
+    background:#0f172a;
+    color:#e2e8f0;
+    border:1px solid rgba(148,163,184,.55);
+    box-shadow:0 10px 24px rgba(0,0,0,.45);
+  }
+  .linkBtn.secondary:hover{border-color:rgba(56,189,248,.75)}
+
+  /* Sidebar */
+  .sidebar{background:var(--panel);border:1px solid var(--panelBorder);border-radius:16px;padding:16px;
+           display:flex;flex-direction:column;gap:18px;box-shadow:0 20px 60px rgba(0,0,0,.6);font-size:13px}
+  .blockLabel{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:700}
+  .box{background:#111827;border:1px solid #475569;border-radius:14px;padding:12px;display:grid;gap:10px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .scoreVal{font-size:22px;font-weight:800;color:var(--accent);text-shadow:0 8px 24px rgba(56,189,248,.45);font-variant-numeric:tabular-nums}
+  .hint{color:var(--muted);font-size:12px;line-height:1.4}
+
+  .ballPreview{display:flex;align-items:center;gap:12px}
+  .ball{width:28px;height:28px;border-radius:999px;border:2px solid rgba(0,0,0,.55);box-shadow:0 0 10px rgba(255,255,255,.4)}
+  .ballLabel{color:var(--muted);font-size:12px}
+
+  /* Board */
+  .boardWrap{position:relative;background:var(--panel);border:1px solid var(--panelBorder);border-radius:18px;padding:18px;
+             box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .cols{display:grid;grid-template-columns:repeat(7,1fr);gap:12px}
+  .col{position:relative;background:var(--boardCol);border-radius:18px;padding:48px 10px 14px;border:1px solid var(--boardBorder);
+       display:grid;align-content:end;gap:10px;min-height:540px;box-shadow:inset 0 30px 60px rgba(0,0,0,.6)}
+  .dropBtn{position:absolute;top:4px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:999px;
+           border:2px dashed rgba(148,163,184,.6);background:#0f172a;color:#e2e8f0;font-weight:900;font-size:16px;cursor:pointer;
+           box-shadow:0 20px 40px rgba(0,0,0,.8)}
+  .dropBtn:disabled{opacity:.35;cursor:not-allowed}
+  .slot{position:relative;width:66px;height:66px;border-radius:999px;background:#1e253d;
+        box-shadow:inset 0 8px 16px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.6);border:2px solid rgba(148,163,184,.12)}
+
+  .disc{position:absolute;width:66px;height:66px;border-radius:999px;transform:translateY(-100px);
+        transition:transform .26s cubic-bezier(.2,.9,.2,1);box-shadow:0 16px 40px rgba(0,0,0,.85)}
+  .disc::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(60% 60% at 30% 30%,rgba(255,255,255,.5),transparent 60%)}
+  .disc.red{background:var(--red)} .disc.yellow{background:var(--yellow)} .disc.green{background:var(--green)} .disc.blue{background:var(--blue)}
+
+  /* show the mistake before banner */
+  .failHold{
+    outline:4px solid var(--warn);
+    box-shadow:0 0 24px var(--warnGlow), 0 16px 40px rgba(0,0,0,.85);
+    transform:scale(1.04);
+    z-index:5;
+  }
+  .dimBoard .disc{ opacity:.35; filter:saturate(.75); }
+  .dimBoard .disc.failHold{ opacity:1; filter:none; }
+
+  /* Overlay */
+  .banner{position:absolute;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:10}
+  .bannerCard{background:#0f172a;border:1px solid #475569;border-radius:16px;padding:20px 24px;min-width:260px;
+              box-shadow:0 30px 80px rgba(0,0,0,.9);text-align:center}
+  .bannerCard h2{margin:0 0 8px}
+  .final{color:var(--muted);margin-bottom:14px}
+
+  @media (max-width:960px){ .app{grid-template-columns:1fr} .col{min-height:520px} }
+  @media (prefers-reduced-motion: reduce){ .disc{transition:none} }
+</style>
+</head>
+
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="title">GRAVITY — <span style="color:var(--accent)">Solo · Chill</span></div>
+      <div class="tagline">Drop carefully. Touch your color (8 directions) and it’s over. Next Ball + fair shuffle.</div>
+    </div>
+
+    <div class="controls">
+      <a class="linkBtn secondary" href="Gravity_Rules.pdf" target="_blank" rel="noopener">Rules</a>
+      <a class="linkBtn secondary" href="index.html">Back Home</a>
+      <button id="drawBtn">Draw Ball</button>
+      <button id="restartBtn">Restart</button>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div>
+      <div class="blockLabel">Status</div>
+      <div class="box">
+        <div class="row"><span>Score</span><span class="scoreVal" id="scoreVal">0</span></div>
+        <div class="row"><span>Best</span><span class="scoreVal" id="bestVal">0</span></div>
+        <div class="row"><span>Empty Cells</span><span class="scoreVal" id="emptyVal">49</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="blockLabel">Next Ball</div>
+      <div class="box">
+        <div class="ballPreview">
+          <div id="nextBallDot" class="ball" title="Next ball"></div>
+          <div class="ballLabel" id="nextBallLabel">Not drawn</div>
+        </div>
+        <div class="hint">Avoid touching the same color in any of 8 directions.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="blockLabel">How it works</div>
+      <div class="box hint">
+        • Drop a ball into any column.<br/>
+        • If it touches the same color (8 directions), the run ends.<br/>
+        • Score +1 per safe drop.<br/>
+        • Balanced shuffle bag (4× each color) prevents long streaks.
+      </div>
+    </div>
+  </aside>
+
+  <main class="boardWrap">
+    <div class="cols" id="cols"></div>
+
+    <div class="banner" id="banner">
+      <div class="bannerCard">
+        <h2 id="bannerTitle">Run Over</h2>
+        <div class="final" id="bannerMsg"></div>
+        <button id="playAgainBtn">Play Again</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(() => {
+  // ===== Config =====
+  const ROWS = 7, COLS = 7;
+  const COLORS = ["red","yellow","green","blue"];
+  const BAG_MULTIPLIER = 4;              // 4 of each color per bag cycle
+  const bestKey = "whirtel_gravity_best";
+
+  // ===== State =====
+  let board;                 // [r][c] => {color, discEl} | null
+  let score;                 // total
+  let nextColor;             // string|null (preview)
+  let bag;                   // draw bag array
+  let gameOver;
+
+  // ===== DOM =====
+  const colsEl = document.getElementById("cols");
+  const drawBtn = document.getElementById("drawBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const playAgainBtn = document.getElementById("playAgainBtn");
+  const banner = document.getElementById("banner");
+  const bannerTitle = document.getElementById("bannerTitle");
+  const bannerMsg = document.getElementById("bannerMsg");
+
+  const scoreVal = document.getElementById("scoreVal");
+  const bestVal = document.getElementById("bestVal");
+  const emptyVal = document.getElementById("emptyVal");
+  const nextBallDot = document.getElementById("nextBallDot");
+  const nextBallLabel = document.getElementById("nextBallLabel");
+
+  // ===== Helpers =====
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+  }
+  function buildBag(){
+    const b=[];
+    for(const c of COLORS){ for(let i=0;i<BAG_MULTIPLIER;i++){ b.push(c); } }
+    return shuffle(b);
+  }
+  function drawFromBag(){
+    if(bag.length===0) bag = buildBag();
+    return bag.pop();
+  }
+  function colorCSS(c){
+    return c==="red"?"var(--red)"
+         : c==="yellow"?"var(--yellow)"
+         : c==="green"?"var(--green)"
+         : c==="blue"?"var(--blue)":"#475569";
+  }
+  function inBounds(r,c){ return r>=0 && r<ROWS && c>=0 && c<COLS; }
+  function nextEmptyRow(c){ for(let r=ROWS-1;r>=0;r--) if(board[r][c]===null) return r; return -1; }
+
+  function sameAdjCells8(r,c,color){
+    const hits=[];
+    for(let dr=-1; dr<=1; dr++){
+      for(let dc=-1; dc<=1; dc++){
+        if(dr===0 && dc===0) continue;
+        const rr=r+dr, cc=c+dc;
+        if(inBounds(rr,cc) && board[rr][cc]?.color===color) hits.push([rr,cc]);
+      }
+    }
+    return hits;
+  }
+
+  // ===== UI Build =====
+  function buildBoard(){
+    colsEl.innerHTML = "";
+    for(let c=0;c<COLS;c++){
+      const col = document.createElement("div");
+      col.className = "col";
+
+      const btn = document.createElement("button");
+      btn.className = "dropBtn";
+      btn.textContent = "+";
+      btn.title = `Drop in column ${c+1}`;
+      btn.onclick = () => attemptDrop(c);
+      col.appendChild(btn);
+
+      for(let r=0;r<ROWS;r++){
+        const s = document.createElement("div");
+        s.className = "slot";
+        col.appendChild(s);
+      }
+      colsEl.appendChild(col);
+    }
+  }
+
+  function wipeDiscs(){
+    document.querySelector('.boardWrap')?.classList.remove('dimBoard');
+    [...colsEl.querySelectorAll(".failHold")].forEach(el=>el.classList.remove("failHold"));
+    [...colsEl.querySelectorAll(".disc")].forEach(d=>d.remove());
+  }
+
+  function updateNextBallUI(){
+    if(nextColor){
+      nextBallDot.style.background = colorCSS(nextColor);
+      nextBallLabel.textContent = nextColor.toUpperCase();
+      nextBallLabel.style.color = "var(--text)";
+    }else{
+      nextBallDot.style.background = "#475569";
+      nextBallLabel.textContent = "Not drawn";
+      nextBallLabel.style.color = "var(--muted)";
+    }
+  }
+
+  function updateHUD(){
+    scoreVal.textContent = score;
+
+    const best = Number(localStorage.getItem(bestKey)||0);
+    bestVal.textContent = isNaN(best)?0:best;
+
+    const empty = board.flat().filter(v=>v===null).length;
+    emptyVal.textContent = empty;
+
+    // controls
+    [...colsEl.querySelectorAll(".dropBtn")].forEach((btn,idx)=>{
+      const can = !!nextColor && !gameOver && nextEmptyRow(idx)!==-1;
+      btn.disabled = !can;
+    });
+    drawBtn.disabled = !!nextColor || gameOver;
+
+    updateNextBallUI();
+  }
+
+  // ===== Actions =====
+  function seedNextBall(){ nextColor = drawFromBag(); }
+
+  function reset(){
+    board = Array.from({length:ROWS},()=>Array(COLS).fill(null));
+    score = 0;
+    gameOver = false;
+    bag = buildBag();
+    nextColor = null;
+    banner.style.display = "none";
+    wipeDiscs();
+    updateHUD();
+  }
+
+  function drawBall(){
+    if(gameOver || nextColor) return;
+    seedNextBall();
+    updateHUD();
+  }
+
+  function showLossWhy(placedDiscEl, neighborDiscEls){
+    document.querySelector('.boardWrap')?.classList.add('dimBoard');
+    placedDiscEl?.classList.add('failHold');
+    neighborDiscEls.forEach(el=>el?.classList.add('failHold'));
+  }
+
+  function attemptDrop(c){
+    if(gameOver || !nextColor) return;
+    const r = nextEmptyRow(c);
+    if(r===-1) return;
+
+    const colEl = colsEl.children[c];
+    const disc = document.createElement("div");
+    disc.className = "disc "+nextColor;
+    colEl.appendChild(disc);
+
+    const slots = colEl.querySelectorAll(".slot");
+    const slotRect = slots[r].getBoundingClientRect();
+    const colRect = colEl.getBoundingClientRect();
+    const x = slotRect.left - colRect.left + (slotRect.width/2) - 33;
+    disc.style.left = x+"px";
+    disc.style.top = "-100px";
+
+    requestAnimationFrame(()=>{
+      const y = slotRect.top - colRect.top;
+      disc.style.transform = `translateY(${y}px)`;
+
+      disc.addEventListener("transitionend", ()=>{
+        disc.style.transform = "none";
+        disc.style.top = (slotRect.top - colRect.top)+"px";
+
+        const placedColor = nextColor;
+
+        // store both color + element
+        board[r][c] = { color: placedColor, discEl: disc };
+
+        // check loss (8-way)
+        const hitCells = sameAdjCells8(r,c,placedColor);
+
+        // consume next
+        nextColor = null;
+
+        if(hitCells.length){
+          // SHOW how you lost, then delay, then banner
+          const neighborEls = hitCells.map(([rr,cc]) => board[rr][cc]?.discEl).filter(Boolean);
+          showLossWhy(disc, neighborEls);
+
+          gameOver = true;
+          updateHUD();
+
+          setTimeout(() => finalizeScore(false), 1100);
+          return;
+        }
+
+        // safe placement
+        score += 1;
+
+        // perfect?
+        const emptyLeft = board.flat().filter(v=>v===null).length;
+        if(emptyLeft===0){
+          finalizeScore(true);
+          return;
+        }
+
+        // auto-draw for next turn
+        seedNextBall();
+        updateHUD();
+      }, {once:true});
+    });
+  }
+
+  function finalizeScore(perfect){
+    gameOver = true;
+    const best = Number(localStorage.getItem(bestKey)||0);
+    if(score>best) localStorage.setItem(bestKey, String(score));
+
+    bannerTitle.textContent = perfect ? "Perfect!" : "Run Over";
+    bannerMsg.innerHTML = perfect
+      ? `Flawless run — <strong>${score}</strong> points (all 49 placed).`
+      : `Final Score: <strong>${score}</strong>`;
+    banner.style.display = "flex";
+    updateHUD();
+  }
+
+  // ===== Wire =====
+  playAgainBtn.onclick = reset;
+  restartBtn.onclick = reset;
+  drawBtn.onclick = drawBall;
+
+  // Build & start
+  buildBoard();
+  reset();
+})();
+</script>
+</body>
+</html>
