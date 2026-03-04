@@ -85,6 +85,48 @@
 
   @media (max-width:960px){ .app{grid-template-columns:1fr} .col{min-height:520px} }
   @media (prefers-reduced-motion: reduce){ .disc{transition:none} }
+  /* ---------- Mobile collapse ---------- */
+.infoPanel > summary{
+  display:none;
+}
+
+@media (max-width: 520px){
+  .app{
+    grid-template-columns: 1fr;
+    padding:12px;
+  }
+
+  .infoPanel{
+    border:1px solid var(--panelBorder);
+    border-radius:14px;
+    padding:10px;
+    background:#0f172a;
+  }
+
+  .infoPanel > summary{
+    display:block;
+    font-weight:800;
+    cursor:pointer;
+    list-style:none;
+  }
+
+  .infoPanel > summary::-webkit-details-marker{
+    display:none;
+  }
+
+  .infoPanel:not([open]) > *:not(summary){
+    display:none;
+  }
+
+  .slot, .disc{
+    width:44px;
+    height:44px;
+  }
+
+  .col{
+    min-height:62vh;
+  }
+}
 </style>
 </head>
 
