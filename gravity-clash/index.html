@@ -13,10 +13,9 @@
   --red:#ef4444; --yellow:#facc15; --green:#22c55e; --blue:#3b82f6;
   --warn:#fb7185; --warnGlow: rgba(251,113,133,.35);
 
-  /* ✅ RESPONSIVE SIZES (single source of truth) */
-  --cell: 66px;     /* slot + disc size */
-  --gap: 12px;      /* column gap */
-  --slotGap: 10px;  /* vertical slot gap inside column */
+  --cell: 66px;
+  --gap: 12px;
+  --slotGap: 10px;
 }
 
 *{box-sizing:border-box}
@@ -68,7 +67,6 @@ select{
   font-weight:1000;
 }
 
-/* ✅ Home button (link styled like a button) */
 a.btnLink{
   border:0;border-radius:10px;padding:8px 12px;
   background:var(--accent);color:#0f172a;
@@ -85,7 +83,6 @@ a.btnLink.secondary{
   box-shadow:none;
 }
 
-/* Sidebar */
 .sidebar{
   background:var(--panel);
   border:1px solid var(--panelBorder);
@@ -189,7 +186,6 @@ a.btnLink.secondary{
 }
 .player.out .elimPill{display:inline-flex}
 
-/* Board */
 .boardWrap{
   position:relative;
   background:var(--panel);
@@ -240,7 +236,6 @@ a.btnLink.secondary{
   box-shadow:inset 0 10px 18px rgba(0,0,0,.35);
 }
 
-/* Chips */
 .disc{
   position:absolute;
   width:var(--cell);
@@ -277,7 +272,6 @@ a.btnLink.secondary{
 .disc.green{background:radial-gradient(circle at 28% 22%,#c9fbdc,var(--green) 54%,#14532d)}
 .disc.blue{background:radial-gradient(circle at 28% 22%,#cfe3ff,var(--blue) 54%,#1e3a8a)}
 
-/* PLAYER JOKER */
 .disc.joker{
   background:
     radial-gradient(circle at 30% 22%, rgba(255,255,255,.95), transparent 52%),
@@ -299,7 +293,6 @@ a.btnLink.secondary{
   pointer-events:none;
 }
 
-/* BOULDER */
 .disc.boulder{
   background:
     radial-gradient(circle at 28% 22%, rgba(255,255,255,.10), transparent 55%),
@@ -315,7 +308,6 @@ a.btnLink.secondary{
 .disc.boulder::after{ opacity:.25; }
 .disc.boulder::before{ box-shadow: inset 0 0 0 2px rgba(255,255,255,.08); }
 
-/* Loss clarity */
 .failHold{
   outline:4px solid var(--warn);
   box-shadow:0 0 24px var(--warnGlow);
@@ -324,7 +316,6 @@ a.btnLink.secondary{
 .boardWrap.dimBoard .disc{opacity:.35;filter:saturate(.82)}
 .boardWrap.dimBoard .disc.failHold{opacity:1;filter:none}
 
-/* POW effect */
 .pow{
   position:absolute;
   left:50%;
@@ -350,7 +341,6 @@ a.btnLink.secondary{
 }
 .pow.show{ animation: powPop .55s ease-out forwards; }
 
-/* Explosion */
 @keyframes boom{
   0%{transform:scale(1);opacity:1}
   55%{transform:scale(1.35);opacity:1}
@@ -358,7 +348,6 @@ a.btnLink.secondary{
 }
 .boomOut{animation:boom .34s ease-out forwards}
 
-/* Banner */
 .banner{
   position:absolute;inset:0;
   display:none;
@@ -375,14 +364,12 @@ a.btnLink.secondary{
   text-align:center;
 }
 
-/* ✅ MOBILE: stack layout and shrink sizes safely */
 @media (max-width: 960px){
   .app{ grid-template-columns:1fr; padding:14px; }
   header{ gap:10px; }
   .title{ font-size:22px; }
 }
 
-/* ✅ PHONE: reduce chip size + column spacing */
 @media (max-width: 520px){
   :root{
     --cell: 44px;
@@ -413,8 +400,7 @@ a.btnLink.secondary{
       </select>
     </label>
 
-    <!-- ✅ Home button (change index.html if your home file has a different name) -->
-    <a class="btnLink secondary" href="index.html" title="Back to Home">← Home</a>
+    <a class="btnLink secondary" href="../" title="Back to Home">← Home</a>
 
     <button id="newGame" title="Restart with current player count">New Game</button>
     <button id="reset" class="secondary" title="Same as New Game">Reset</button>
@@ -464,7 +450,6 @@ a.btnLink.secondary{
     {n:"Blue",c:"blue",v:"var(--blue)"}
   ];
 
-  // board cell: { pid, discEl, type:'normal'|'joker'|'boulder', static?:true }
   let players=[], board, current=0, accepting=true;
   let jokerArmed=false;
   let jokersEnabled=false;
@@ -571,7 +556,6 @@ a.btnLink.secondary{
     return -1;
   }
 
-  // only NORMAL chips trigger elimination
   function adjSameCells(r,c,pid){
     const hits=[];
     for(let dr=-1;dr<=1;dr++){
@@ -783,10 +767,9 @@ a.btnLink.secondary{
   playAgainBtn.onclick=start;
   playerCountSel.addEventListener("change", start);
 
-  /* ✅ Keyboard shortcut: press H to go Home */
   window.addEventListener("keydown", (e) => {
     if (e.key && e.key.toLowerCase() === "h") {
-      window.location.href = "index.html";
+      window.location.href = "../";
     }
   });
 
