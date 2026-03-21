@@ -4,7 +4,6 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-<!-- ✅ OFFICIAL NAME -->
 <title>Connect Even More — Team Swirl (7×7)</title>
 
 <style>
@@ -303,7 +302,6 @@ button.action:hover, a.action:hover{
   border:1px solid rgba(59,130,246,.9);
 }
 
-/* Holds the winning 4 so it doesn't "move too fast" */
 .winHold{
   outline:4px solid rgba(250,204,21,.98);
   box-shadow:0 0 26px rgba(250,204,21,.85), 0 16px 30px rgba(0,0,0,.45);
@@ -412,18 +410,13 @@ button.action:hover, a.action:hover{
 <div class="app">
   <header>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      <!-- ✅ OFFICIAL NAME ON PAGE -->
       <h1>Connect Even More — Swirl Teams</h1>
       <span class="badge">7×7 · Team Connect 4 · Fixed Turn Cycle</span>
     </div>
 
     <div class="controls">
-      <!-- ✅ BACK HOME -->
-      <a class="action secondary" href="index.html" title="Back to Home">← Home</a>
-
-      <!-- ✅ RULES BUTTON (opens overlay) -->
+      <a class="action secondary" href="../" title="Back to Home">← Home</a>
       <button class="action secondary" id="rulesBtn" title="Rules">Rules</button>
-
       <button class="action" id="newRound">New Round</button>
       <button class="action secondary" id="reset">Reset</button>
     </div>
@@ -484,7 +477,6 @@ button.action:hover, a.action:hover{
   </main>
 </div>
 
-<!-- WIN BANNER -->
 <div class="banner" id="banner" role="dialog" aria-modal="true" aria-label="Game result">
   <div class="card" style="max-width:520px;text-align:center;">
     <h2 id="winTitle">TEAM RED WINS!</h2>
@@ -493,7 +485,6 @@ button.action:hover, a.action:hover{
   </div>
 </div>
 
-<!-- RULES OVERLAY -->
 <div class="banner" id="rulesOverlay" role="dialog" aria-modal="true" aria-label="Rules">
   <div class="card">
     <div class="cardHeader">
@@ -502,7 +493,6 @@ button.action:hover, a.action:hover{
         <div class="small">If the PDF doesn’t display on your device, use “Open PDF”.</div>
       </div>
       <div class="rulesRow">
-        <!-- ✅ Change this filename if yours is different -->
         <a class="action secondary" id="openPdfLink" href="Connect_Even_More_Swirl_Rules.pdf" target="_blank" rel="noopener">Open PDF</a>
         <button class="closeBtn" id="closeRules">Close</button>
       </div>
@@ -528,7 +518,7 @@ button.action:hover, a.action:hover{
     { team:'blue', chip:'swirl', cls:'blueSwirl', label:'TEAM BLUE — SWIRL', mini:'Blue Swirl' }
   ];
 
-  let board = Array.from({length:ROWS}, () => Array(COLS).fill(null)); // {team, chip, cls, discEl}
+  let board = Array.from({length:ROWS}, () => Array(COLS).fill(null));
   let step = 0;
   let accepting = true;
 
@@ -553,7 +543,6 @@ button.action:hover, a.action:hover{
   const teamRedPanel = document.getElementById('teamRedPanel');
   const teamBluePanel = document.getElementById('teamBluePanel');
 
-  // ✅ Set your PDF name here if you rename it later
   const RULES_PDF = "Connect_Even_More_Swirl_Rules.pdf";
 
   function setRulesPdf(){
@@ -782,10 +771,8 @@ button.action:hover, a.action:hover{
     updateTurnUI();
   }
 
-  // Buttons
   document.getElementById('newRound').onclick = () => {
     clearBoard();
-    // keep step as-is so the fixed cycle continues
   };
 
   document.getElementById('reset').onclick = () => {
@@ -798,7 +785,6 @@ button.action:hover, a.action:hover{
     clearBoard();
   };
 
-  // Rules overlay
   rulesBtn.onclick = () => {
     setRulesPdf();
     rulesOverlay.classList.add('show');
@@ -822,10 +808,9 @@ button.action:hover, a.action:hover{
 
     if(e.key >= '1' && e.key <= '7') drop(parseInt(e.key,10)-1);
     if(e.key.toLowerCase() === 'r') document.getElementById('reset').click();
-    if(e.key.toLowerCase() === 'h') window.location.href = "index.html";
+    if(e.key.toLowerCase() === 'h') window.location.href = "../";
   });
 
-  // init
   buildBoard();
   setRulesPdf();
   updateTurnUI();
